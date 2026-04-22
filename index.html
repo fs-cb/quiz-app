@@ -108,37 +108,57 @@ let idx = 0;
 let score = 0;
 let userAns = null;
 
-async function loadQuestions(cat) {
-  const gasUrl = "https://script.google.com/macros/s/AKfycbzinDdMG2a_U50L2aT0VY8hO36aqZE_NXYBMTzUTZ30OV99N5W3W-rHXrHowNWL82VCuw/exec";
+function loadQuestions(cat) {
+  const gasUrl = "https://script.google.com/macros/s/AKfycbz4KdaTBCFWimEhjtX8fz_1sGfKj1Y_rmuwg8KSccKN2fpuZW1P-KIrgFf4GhInSfGThg/exec";
 
   document.getElementById('startScreen').style.display = 'none';
   document.getElementById('quizScreen').style.display = 'block';
   document.getElementById('questionText').textContent = "データを読み込み中...";
-  
-  try {
-    const response = await fetch(`${gasUrl}?cat=${cat}`);
-    const data = await response.json();
-    
-    if(!data || data.length === 0) {
-       document.getElementById('questionText').textContent = "該当する問題が見つかりませんでした。";
-       return;
+
+  const callbackName = "handleQuizData";
+
+  window[callbackName] = function(data) {
+    try {
+      if (!data || data.length === 0) {
+        document.getElementById('questionText').textContent = "該当する問題が見つかりませんでした。";
+        return;
+      }
+
+      questions = data.sort(() => 0.5 - Math.random())
+        .slice(0, 10)
+        .map(q => ({
+          Q: q.Scenario,
+          A: q.ChoiceA,
+          B: q.ChoiceB,
+          C: q.ChoiceC,
+          D: q.ChoiceD,
+          R: q.CorrectAnswer,
+          E: q.Explanation,
+          Cat: q.Category
+        }));
+
+      idx = 0;
+      score = 0;
+      show();
+    } catch (error) {
+      document.getElementById('questionText').textContent = "データ処理中にエラーが発生しました。";
+      console.error(error);
     }
+  };
 
-    questions = data.sort(() => 0.5 - Math.random())
-                    .slice(0, 10)
-                    .map(q => ({
-                      Q: q.Scenario,
-                      A: q.ChoiceA, B: q.ChoiceB, C: q.ChoiceC, D: q.ChoiceD,
-                      R: q.CorrectAnswer, E: q.Explanation, Cat: q.Category
-                    }));
-    idx = 0; score = 0;
-    show();
-  } catch (error) {
-    document.getElementById('questionText').textContent = "データの取得に失敗しました。GASのURLとアクセス権限を確認してください。";
-    console.error(error);
-  }
+  const oldScript = document.getElementById('jsonpScript');
+  if (oldScript) oldScript.remove();
+
+  const script = document.createElement('script');
+  script.id = 'jsonpScript';
+  script.src = `${gasUrl}?cat=${encodeURIComponent(cat)}&callback=${callbackName}`;
+  script.onerror = function(err) {
+    document.getElementById('questionText').textContent = "データの取得に失敗しました。";
+    console.error(err);
+  };
+
+  document.body.appendChild(script);
 }
-
 function show() {
   const q = questions[idx];
   userAns = null;
