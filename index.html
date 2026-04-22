@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>vSphere 問題集</title>
+<title>VCF Master Quiz</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -17,170 +17,165 @@
   body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
   body::before { content: ''; position: fixed; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(ellipse at 30% 20%, rgba(79,142,247,0.07) 0%, transparent 50%), radial-gradient(ellipse at 70% 80%, rgba(124,58,237,0.07) 0%, transparent 50%); pointer-events: none; z-index: 0; }
   .container { width: 100%; max-width: 680px; position: relative; z-index: 1; }
+  
+  /* Start Screen & Category Selection */
   .start-screen { text-align: center; animation: fadeIn 0.6s ease; }
   .logo { font-family: 'Space Mono', monospace; font-size: 13px; letter-spacing: 0.2em; color: var(--accent); text-transform: uppercase; margin-bottom: 24px; opacity: 0.8; }
-  .start-screen h1 { font-size: clamp(28px,6vw,42px); font-weight: 900; line-height: 1.2; margin-bottom: 12px; background: linear-gradient(135deg, var(--text) 0%, var(--accent) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-  .start-screen p { color: var(--text-muted); font-size: 15px; margin-bottom: 40px; line-height: 1.7; }
-  .btn-start { display: inline-flex; align-items: center; gap: 10px; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; border: none; padding: 16px 40px; border-radius: 50px; font-size: 16px; font-weight: 700; font-family: 'Noto Sans JP', sans-serif; cursor: pointer; transition: all 0.2s; box-shadow: 0 8px 32px rgba(79,142,247,0.3); }
-  .btn-start:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(79,142,247,0.4); }
+  .start-screen h1 { font-size: clamp(28px,6vw,42px); font-weight: 900; line-height: 1.2; margin-bottom: 12px; background: linear-gradient(135deg, var(--text) 0%, var(--accent) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .start-screen p { color: var(--text-muted); font-size: 15px; margin-bottom: 30px; }
+  
+  .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0 auto; max-width: 500px; }
+  .cat-btn { 
+    background: var(--surface2); border: 1.5px solid var(--border); color: white; 
+    padding: 20px; border-radius: var(--radius); font-weight: 700; cursor: pointer; transition: all 0.2s;
+    font-family: 'Noto Sans JP', sans-serif; font-size: 15px;
+  }
+  .cat-btn:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.3); }
+  .mix-btn { 
+    grid-column: span 2; margin-top: 8px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2)); border: none;
+  }
+
+  /* Quiz Screen */
   .quiz-screen { animation: fadeIn 0.4s ease; }
   .progress-bar { background: var(--surface); border-radius: 50px; height: 6px; margin-bottom: 28px; overflow: hidden; border: 1px solid var(--border); }
   .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 50px; transition: width 0.5s cubic-bezier(0.4,0,0.2,1); }
   .question-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-  .question-num { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--accent); letter-spacing: 0.1em; }
+  .question-num { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--accent); }
   .score-badge { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--text-muted); background: var(--surface); padding: 4px 12px; border-radius: 50px; border: 1px solid var(--border); }
   .question-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; margin-bottom: 20px; position: relative; overflow: hidden; }
   .question-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent2)); }
   .category-tag { display: inline-block; font-size: 11px; font-weight: 700; color: var(--accent); background: rgba(79,142,247,0.12); border: 1px solid rgba(79,142,247,0.25); padding: 3px 10px; border-radius: 50px; margin-bottom: 14px; }
-  .question-text { font-size: clamp(14px,3vw,16px); line-height: 1.85; font-weight: 500; }
+  .question-text { font-size: 16px; line-height: 1.85; font-weight: 500; }
+  
   .choices { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
-  .choice-btn { display: flex; align-items: flex-start; gap: 14px; background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 16px 18px; cursor: pointer; transition: all 0.18s; text-align: left; color: var(--text); font-family: 'Noto Sans JP', sans-serif; font-size: 14px; line-height: 1.6; width: 100%; }
+  .choice-btn { display: flex; align-items: flex-start; gap: 14px; background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 16px 18px; cursor: pointer; transition: all 0.18s; text-align: left; color: var(--text); font-size: 14px; width: 100%; }
   .choice-btn:hover:not(:disabled) { background: var(--surface2); border-color: var(--accent); transform: translateX(4px); }
-  .choice-label { font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700; color: var(--accent); min-width: 22px; padding-top: 1px; }
+  .choice-label { font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700; color: var(--accent); min-width: 22px; }
   .choice-btn.correct { background: rgba(34,197,94,0.1); border-color: var(--success); }
-  .choice-btn.correct .choice-label { color: var(--success); }
   .choice-btn.wrong { background: rgba(239,68,68,0.1); border-color: var(--danger); }
-  .choice-btn.wrong .choice-label { color: var(--danger); }
-  .choice-btn.reveal-correct { background: rgba(34,197,94,0.06); border-color: rgba(34,197,94,0.4); }
-  .choice-btn:disabled { cursor: default; transform: none !important; }
-  .feedback { border-radius: var(--radius); padding: 16px 18px; margin-bottom: 20px; font-size: 14px; line-height: 1.7; display: none; animation: slideUp 0.3s ease; }
+  .choice-btn:disabled { cursor: default; }
+
+  .feedback { border-radius: var(--radius); padding: 16px 18px; margin-bottom: 20px; font-size: 14px; line-height: 1.7; display: none; }
   .feedback.correct-fb { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); color: #86efac; }
   .feedback.wrong-fb { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; }
-  .feedback-title { font-weight: 700; font-size: 15px; margin-bottom: 6px; }
-  .btn-next { width: 100%; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; border: none; padding: 15px; border-radius: var(--radius); font-size: 15px; font-weight: 700; font-family: 'Noto Sans JP', sans-serif; cursor: pointer; transition: all 0.2s; display: none; }
-  .btn-next:hover { opacity: 0.9; transform: translateY(-1px); }
-  .result-screen { text-align: center; animation: fadeIn 0.5s ease; }
+  
+  .btn-next { width: 100%; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; border: none; padding: 15px; border-radius: var(--radius); font-weight: 700; cursor: pointer; display: none; }
+
+  /* Result Screen */
+  .result-screen { text-align: center; display: none; }
   .result-circle { width: 140px; height: 140px; margin: 0 auto 28px; position: relative; }
   .result-circle svg { transform: rotate(-90deg); }
   .result-circle-bg { fill: none; stroke: var(--surface2); stroke-width: 8; }
-  .result-circle-fill { fill: none; stroke: url(#scoreGradient); stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset 1s cubic-bezier(0.4,0,0.2,1); }
-  .result-score-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); text-align: center; }
-  .result-score-num { font-family: 'Space Mono', monospace; font-size: 36px; font-weight: 700; line-height: 1; }
-  .result-score-total { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
-  .result-message { font-size: clamp(20px,5vw,28px); font-weight: 900; margin-bottom: 10px; background: linear-gradient(135deg, var(--text), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-  .result-sub { color: var(--text-muted); font-size: 14px; margin-bottom: 36px; line-height: 1.7; }
-  .result-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 32px; }
-  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; }
-  .stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px; }
-  .stat-value { font-family: 'Space Mono', monospace; font-size: 26px; font-weight: 700; }
-  .stat-value.good { color: var(--success); } .stat-value.bad { color: var(--danger); }
-  .btn-retry { display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; border: none; padding: 15px 36px; border-radius: 50px; font-size: 15px; font-weight: 700; font-family: 'Noto Sans JP', sans-serif; cursor: pointer; transition: all 0.2s; box-shadow: 0 8px 32px rgba(79,142,247,0.3); }
-  .btn-retry:hover { transform: translateY(-2px); }
+  .result-circle-fill { fill: none; stroke: url(#scoreGradient); stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset 1s ease-out; }
+  .result-score-num { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-family: 'Space Mono', monospace; font-size: 36px; font-weight: 700; }
+  
   @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-  @keyframes slideUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 </style>
 </head>
 <body>
+
 <div class="container">
   <div class="start-screen" id="startScreen">
-    <div class="logo">vSphere Quiz</div>
+    <div class="logo">VCF Learning App</div>
     <h1>問題にチャレンジ！</h1>
-    <p>vSphere関連の問題からランダムに10問出題します。<br>各問題はA〜Dの4択形式です。</p>
-    <button class="btn-start" onclick="loadQuestions()">テストを開始する &nbsp;→</button>
+    <p>学習したいカテゴリを選択してください。</p>
+    <div class="cat-grid">
+      <button class="cat-btn" onclick="loadQuestions('vSphere')">vSphere</button>
+      <button class="cat-btn" onclick="loadQuestions('vSAN')">vSAN</button>
+      <button class="cat-btn" onclick="loadQuestions('NSX')">NSX</button>
+      <button class="cat-btn" onclick="loadQuestions('VCF')">VCF</button>
+      <button class="cat-btn mix-btn" onclick="loadQuestions('MIX')">ランダム &nbsp;→</button>
+    </div>
   </div>
+
   <div class="quiz-screen" id="quizScreen" style="display:none">
-    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
     <div class="question-header">
       <span class="question-num" id="questionNum">問題 1 / 10</span>
       <span class="score-badge" id="scoreBadge">正解: 0</span>
     </div>
     <div class="question-card">
-      <div class="category-tag" id="categoryTag"></div>
-      <div class="question-text" id="questionText"></div>
+      <div class="category-tag" id="categoryTag">CATEGORY</div>
+      <div class="question-text" id="questionText">データを読み込み中...</div>
     </div>
     <div class="choices" id="choices"></div>
     <div class="feedback" id="feedback">
-      <div class="feedback-title" id="feedbackTitle"></div>
+      <div class="feedback-title" id="feedbackTitle" style="font-weight:700; margin-bottom:5px;"></div>
       <div id="feedbackBody"></div>
     </div>
-    <button class="btn-next" id="btnNext" onclick="nextQuestion()"></button>
+    <button class="btn-next" id="btnNext" onclick="nextQuestion()">次の問題へ &nbsp;→</button>
   </div>
-  <div class="result-screen" id="resultScreen" style="display:none">
+
+  <div class="result-screen" id="resultScreen">
     <div class="result-circle">
       <svg width="140" height="140" viewBox="0 0 140 140">
-        <defs><linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#4f8ef7"/><stop offset="100%" style="stop-color:#7c3aed"/></linearGradient></defs>
+        <defs><linearGradient id="scoreGradient"><stop offset="0%" stop-color="#4f8ef7"/><stop offset="100%" stop-color="#7c3aed"/></linearGradient></defs>
         <circle class="result-circle-bg" cx="70" cy="70" r="58"/>
         <circle class="result-circle-fill" id="resultCircle" cx="70" cy="70" r="58" stroke-dasharray="364.4" stroke-dashoffset="364.4"/>
       </svg>
-      <div class="result-score-text">
-        <div class="result-score-num" id="resultScoreNum">0</div>
-        <div class="result-score-total">/ 10</div>
-      </div>
+      <div class="result-score-num" id="resultScoreNum">0</div>
     </div>
-    <div class="result-message" id="resultMessage"></div>
-    <div class="result-sub" id="resultSub"></div>
-    <div class="result-stats">
-      <div class="stat-card"><div class="stat-label">正解数</div><div class="stat-value good" id="statCorrect">0</div></div>
-      <div class="stat-card"><div class="stat-label">不正解数</div><div class="stat-value bad" id="statWrong">0</div></div>
-    </div>
-    <button class="btn-retry" onclick="retryQuiz()">↺ &nbsp;もう一度挑戦する</button>
+    <div class="result-message" id="resultMessage" style="font-size:24px; font-weight:900; margin-bottom:10px;"></div>
+    <div id="resultSub" style="color:var(--text-muted); margin-bottom:30px;"></div>
+    <button class="btn-retry" onclick="location.reload()" style="background:linear-gradient(135deg, var(--accent), var(--accent2)); color:white; border:none; padding:15px 40px; border-radius:50px; font-weight:700; cursor:pointer;">↺ もう一度挑戦する</button>
   </div>
-</div><script>
-let questions = []; // GASから読み込んだ問題を格納する変数
+</div>
+
+<script>
+let questions = [];
 let idx = 0;
 let score = 0;
 let userAns = null;
 
-// GASからデータを取得する関数
-async function loadQuestions() {
-  // --- ここを書き換えてください ---
-  const gasUrl = "https://script.google.com/macros/s/AKfycbx0SPSKwHb1KNSr_T9a-Bl9M-h_V8pWWYSEOqymt0rWTiUqGx6rOHZ7wiFdZMDaBWFT9A/exec"; 
-  // ------------------------------
+async function loadQuestions(cat) {
+  // --- ここをあなたのGAS URLに書き換えてください ---
+  const gasUrl = "https://script.google.com/macros/s/AKfycbx0SPSKwHb1KNSr_T9a-Bl9M-h_V8pWWYSEOqymt0rWTiUqGx6rOHZ7wiFdZMDaBWFT9A/exec";
+  // -------------------------------------------
 
-  const loadingText = document.getElementById('qText');
-  loadingText.textContent = "データを読み込み中...";
-
+  document.getElementById('startScreen').style.display = 'none';
+  document.getElementById('quizScreen').style.display = 'block';
+  
   try {
-    const response = await fetch(gasUrl);
+    const response = await fetch(`${gasUrl}?cat=${cat}`);
     const data = await response.json();
     
-    // 全データからランダムに10問選ぶ
     questions = data.sort(() => 0.5 - Math.random())
                     .slice(0, 10)
                     .map(q => ({
                       Q: q.Scenario,
-                      A: q.ChoiceA,
-                      B: q.ChoiceB,
-                      C: q.ChoiceC,
-                      D: q.ChoiceD,
-                      R: q.CorrectAnswer,
-                      E: q.Explanation
+                      A: q.ChoiceA, B: q.ChoiceB, C: q.ChoiceC, D: q.ChoiceD,
+                      R: q.CorrectAnswer, E: q.Explanation, Cat: q.Category
                     }));
-    
-    // 読み込み完了後にクイズ開始
     startQuiz();
   } catch (error) {
-    console.error("データの取得に失敗しました:", error);
-    loadingText.textContent = "データの読み込みに失敗しました。GASのURLとデプロイ設定を確認してください。";
+    document.getElementById('questionText').textContent = "データの取得に失敗しました。";
   }
 }
 
 function startQuiz() {
-  idx = 0;
-  score = 0;
-  document.getElementById('introScreen').style.display = 'none';
-  document.getElementById('resultScreen').style.display = 'none';
-  document.getElementById('quizScreen').style.display = 'block';
+  idx = 0; score = 0;
   show();
 }
 
 function show() {
   const q = questions[idx];
   userAns = null;
-  document.getElementById('qIdx').textContent = `QUESTION ${idx + 1}`;
-  document.getElementById('qText').textContent = q.Q;
-  document.getElementById('prog').style.width = ((idx + 1) * 10) + '%';
+  document.getElementById('questionNum').textContent = `問題 ${idx + 1} / 10`;
+  document.getElementById('scoreBadge').textContent = `正解: ${score}`;
+  document.getElementById('progressFill').style.width = `${(idx + 1) * 10}%`;
+  document.getElementById('categoryTag').textContent = q.Cat || "QUIZ";
+  document.getElementById('questionText').textContent = q.Q;
   
-  const opts = document.getElementById('opts');
-  opts.innerHTML = '';
+  const choicesDiv = document.getElementById('choices');
+  choicesDiv.innerHTML = '';
   ['A', 'B', 'C', 'D'].forEach(id => {
-    const btn = document.createElement('div');
-    btn.className = 'opt';
-    btn.innerHTML = `<span class="opt-id">${id}</span>${q[id]}`;
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn';
+    btn.innerHTML = `<span class="choice-label">${id}</span>${q[id]}`;
     btn.onclick = () => select(id, btn);
-    opts.appendChild(btn);
+    choicesDiv.appendChild(btn);
   });
-
   document.getElementById('feedback').style.display = 'none';
   document.getElementById('btnNext').style.display = 'none';
 }
@@ -190,26 +185,23 @@ function select(id, el) {
   userAns = id;
   const q = questions[idx];
   const ok = (id === q.R);
+  
   if(ok) {
     score++;
     el.classList.add('correct');
   } else {
     el.classList.add('wrong');
-    // 正解の選択肢をハイライト
-    Array.from(document.querySelectorAll('.opt')).forEach(opt => {
-      if(opt.querySelector('.opt-id').textContent === q.R) opt.classList.add('correct');
+    Array.from(document.querySelectorAll('.choice-btn')).forEach(btn => {
+      if(btn.querySelector('.choice-label').textContent === q.R) btn.classList.add('correct');
     });
   }
 
   const fb = document.getElementById('feedback');
-  document.getElementById('feedbackTitle').textContent = ok ? '✓ 正解！' : `✗ 不正解 — 正解は ${q.R}`;
-  document.getElementById('feedbackBody').textContent = q.E ? `解説: ${q.E}` : '';
+  document.getElementById('feedbackTitle').textContent = ok ? '✓ 正解！' : `✗ 不正解 (正解: ${q.R})`;
+  document.getElementById('feedbackBody').textContent = q.E || '';
   fb.className = 'feedback ' + (ok ? 'correct-fb' : 'wrong-fb');
   fb.style.display = 'block';
-  
-  const bn = document.getElementById('btnNext');
-  bn.textContent = idx < 9 ? '次の問題へ →' : '結果を見る →';
-  bn.style.display = 'block';
+  document.getElementById('btnNext').style.display = 'block';
 }
 
 function nextQuestion() {
@@ -221,24 +213,16 @@ function nextQuestion() {
 function result() {
   document.getElementById('quizScreen').style.display = 'none';
   document.getElementById('resultScreen').style.display = 'block';
+  document.getElementById('resultScoreNum').textContent = score;
   setTimeout(() => { 
     document.getElementById('resultCircle').style.strokeDashoffset = 364.4 - (364.4 * score / 10); 
   }, 100);
-  document.getElementById('resultScoreNum').textContent = score;
-  document.getElementById('statCorrect').textContent = score;
-  document.getElementById('statWrong').textContent = 10 - score;
   
-  const m = score === 10 ? ['完璧です！🎉','全問正解！素晴らしい結果です。'] :
-           score >= 8 ? ['よくできました！👏','あと少しで満点です！'] :
-           score >= 6 ? ['まずまずです 💪','苦手な分野を復習しましょう。'] :
-           score >= 4 ? ['もう少し頑張ろう 📚','基礎から見直してみましょう。'] :
-                    ['要復習です 🔥','問題をよく読んで再挑戦！'];
-  document.getElementById('resultTitle').textContent = m[0];
-  document.getElementById('resultDesc').textContent = m[1];
+  const m = score === 10 ? ['完璧！', 'VCFマスターの称号を授けます。'] :
+           score >= 7 ? ['素晴らしい！', 'その調子で学習を続けましょう。'] : ['お疲れ様でした', '復習して再挑戦しましょう！'];
+  document.getElementById('resultMessage').textContent = m[0];
+  document.getElementById('resultSub').textContent = m[1];
 }
-
-// ページ読み込み時に実行する代わりに、ボタンからスタートするように変更
-// window.onload = loadQuestions; 
 </script>
 </body>
 </html>
