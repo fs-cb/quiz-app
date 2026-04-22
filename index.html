@@ -17,29 +17,17 @@
   body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
   body::before { content: ''; position: fixed; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(ellipse at 30% 20%, rgba(79,142,247,0.07) 0%, transparent 50%), radial-gradient(ellipse at 70% 80%, rgba(124,58,237,0.07) 0%, transparent 50%); pointer-events: none; z-index: 0; }
   .container { width: 100%; max-width: 680px; position: relative; z-index: 1; }
-  
-  /* Start Screen & Category Selection */
   .start-screen { text-align: center; animation: fadeIn 0.6s ease; }
   .logo { font-family: 'Space Mono', monospace; font-size: 13px; letter-spacing: 0.2em; color: var(--accent); text-transform: uppercase; margin-bottom: 24px; opacity: 0.8; }
   .start-screen h1 { font-size: clamp(28px,6vw,42px); font-weight: 900; line-height: 1.2; margin-bottom: 12px; background: linear-gradient(135deg, var(--text) 0%, var(--accent) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
   .start-screen p { color: var(--text-muted); font-size: 15px; margin-bottom: 30px; }
-  
   .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0 auto; max-width: 500px; }
-  .cat-btn { 
-    background: var(--surface2); border: 1.5px solid var(--border); color: white; 
-    padding: 20px; border-radius: var(--radius); font-weight: 700; cursor: pointer; transition: all 0.2s;
-    font-family: 'Noto Sans JP', sans-serif; font-size: 15px;
-  }
+  .cat-btn { background: var(--surface2); border: 1.5px solid var(--border); color: white; padding: 20px; border-radius: var(--radius); font-weight: 700; cursor: pointer; transition: all 0.2s; font-size: 15px; }
   .cat-btn:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.3); }
-  .mix-btn { 
-    grid-column: span 2; margin-top: 8px;
-    background: linear-gradient(135deg, var(--accent), var(--accent2)); border: none;
-  }
-
-  /* Quiz Screen */
+  .mix-btn { grid-column: span 2; margin-top: 8px; background: linear-gradient(135deg, var(--accent), var(--accent2)); border: none; }
   .quiz-screen { animation: fadeIn 0.4s ease; }
   .progress-bar { background: var(--surface); border-radius: 50px; height: 6px; margin-bottom: 28px; overflow: hidden; border: 1px solid var(--border); }
-  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 50px; transition: width 0.5s cubic-bezier(0.4,0,0.2,1); }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 50px; width: 0%; transition: width 0.5s cubic-bezier(0.4,0,0.2,1); }
   .question-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
   .question-num { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--accent); }
   .score-badge { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--text-muted); background: var(--surface); padding: 4px 12px; border-radius: 50px; border: 1px solid var(--border); }
@@ -47,37 +35,29 @@
   .question-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent2)); }
   .category-tag { display: inline-block; font-size: 11px; font-weight: 700; color: var(--accent); background: rgba(79,142,247,0.12); border: 1px solid rgba(79,142,247,0.25); padding: 3px 10px; border-radius: 50px; margin-bottom: 14px; }
   .question-text { font-size: 16px; line-height: 1.85; font-weight: 500; }
-  
   .choices { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
   .choice-btn { display: flex; align-items: flex-start; gap: 14px; background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 16px 18px; cursor: pointer; transition: all 0.18s; text-align: left; color: var(--text); font-size: 14px; width: 100%; }
   .choice-btn:hover:not(:disabled) { background: var(--surface2); border-color: var(--accent); transform: translateX(4px); }
   .choice-label { font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700; color: var(--accent); min-width: 22px; }
   .choice-btn.correct { background: rgba(34,197,94,0.1); border-color: var(--success); }
   .choice-btn.wrong { background: rgba(239,68,68,0.1); border-color: var(--danger); }
-  .choice-btn:disabled { cursor: default; }
-
   .feedback { border-radius: var(--radius); padding: 16px 18px; margin-bottom: 20px; font-size: 14px; line-height: 1.7; display: none; }
   .feedback.correct-fb { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); color: #86efac; }
   .feedback.wrong-fb { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; }
-  
   .btn-next { width: 100%; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; border: none; padding: 15px; border-radius: var(--radius); font-weight: 700; cursor: pointer; display: none; }
-
-  /* Result Screen */
   .result-screen { text-align: center; display: none; }
   .result-circle { width: 140px; height: 140px; margin: 0 auto 28px; position: relative; }
   .result-circle svg { transform: rotate(-90deg); }
   .result-circle-bg { fill: none; stroke: var(--surface2); stroke-width: 8; }
-  .result-circle-fill { fill: none; stroke: url(#scoreGradient); stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset 1s ease-out; }
+  .result-circle-fill { fill: none; stroke: url(#scoreGradient); stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset 1s ease-out; stroke-dasharray: 364.4; stroke-dashoffset: 364.4; }
   .result-score-num { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-family: 'Space Mono', monospace; font-size: 36px; font-weight: 700; }
-  
   @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
 </style>
 </head>
 <body>
-
 <div class="container">
   <div class="start-screen" id="startScreen">
-    <div class="logo">VCF Learning App</div>
+    <div class="logo">VCF Master Quiz</div>
     <h1>問題にチャレンジ！</h1>
     <p>学習したいカテゴリを選択してください。</p>
     <div class="cat-grid">
@@ -85,7 +65,7 @@
       <button class="cat-btn" onclick="loadQuestions('vSAN')">vSAN</button>
       <button class="cat-btn" onclick="loadQuestions('NSX')">NSX</button>
       <button class="cat-btn" onclick="loadQuestions('VCF')">VCF</button>
-      <button class="cat-btn mix-btn" onclick="loadQuestions('MIX')">ランダム &nbsp;→</button>
+      <button class="cat-btn mix-btn" onclick="loadQuestions('MIX')">全ジャンル MIX &nbsp;→</button>
     </div>
   </div>
 
@@ -97,11 +77,11 @@
     </div>
     <div class="question-card">
       <div class="category-tag" id="categoryTag">CATEGORY</div>
-      <div class="question-text" id="questionText">データを読み込み中...</div>
+      <div class="question-text" id="questionText">読み込み中...</div>
     </div>
     <div class="choices" id="choices"></div>
     <div class="feedback" id="feedback">
-      <div class="feedback-title" id="feedbackTitle" style="font-weight:700; margin-bottom:5px;"></div>
+      <div id="feedbackTitle" style="font-weight:700; margin-bottom:5px;"></div>
       <div id="feedbackBody"></div>
     </div>
     <button class="btn-next" id="btnNext" onclick="nextQuestion()">次の問題へ &nbsp;→</button>
@@ -112,13 +92,13 @@
       <svg width="140" height="140" viewBox="0 0 140 140">
         <defs><linearGradient id="scoreGradient"><stop offset="0%" stop-color="#4f8ef7"/><stop offset="100%" stop-color="#7c3aed"/></linearGradient></defs>
         <circle class="result-circle-bg" cx="70" cy="70" r="58"/>
-        <circle class="result-circle-fill" id="resultCircle" cx="70" cy="70" r="58" stroke-dasharray="364.4" stroke-dashoffset="364.4"/>
+        <circle class="result-circle-fill" id="resultCircle" cx="70" cy="70" r="58"/>
       </svg>
       <div class="result-score-num" id="resultScoreNum">0</div>
     </div>
-    <div class="result-message" id="resultMessage" style="font-size:24px; font-weight:900; margin-bottom:10px;"></div>
+    <div id="resultMessage" style="font-size:24px; font-weight:900; margin-bottom:10px;"></div>
     <div id="resultSub" style="color:var(--text-muted); margin-bottom:30px;"></div>
-    <button class="btn-retry" onclick="location.reload()" style="background:linear-gradient(135deg, var(--accent), var(--accent2)); color:white; border:none; padding:15px 40px; border-radius:50px; font-weight:700; cursor:pointer;">↺ もう一度挑戦する</button>
+    <button onclick="location.reload()" style="background:linear-gradient(135deg, var(--accent), var(--accent2)); color:white; border:none; padding:15px 40px; border-radius:50px; font-weight:700; cursor:pointer;">↺ もう一度挑戦する</button>
   </div>
 </div>
 
@@ -129,17 +109,21 @@ let score = 0;
 let userAns = null;
 
 async function loadQuestions(cat) {
-  // --- ここをあなたのGAS URLに書き換えてください ---
   const gasUrl = "https://script.google.com/macros/s/AKfycbwwnY1z7HVUq9GlMowBCY9EZ2IxF_hfRoAJjDW0g1CENRHjDNfrGKUyPRX9IyHVoJJbwQ/exec";
-  // -------------------------------------------
 
   document.getElementById('startScreen').style.display = 'none';
   document.getElementById('quizScreen').style.display = 'block';
+  document.getElementById('questionText').textContent = "データを読み込み中...";
   
   try {
     const response = await fetch(`${gasUrl}?cat=${cat}`);
     const data = await response.json();
     
+    if(!data || data.length === 0) {
+       document.getElementById('questionText').textContent = "該当する問題が見つかりませんでした。";
+       return;
+    }
+
     questions = data.sort(() => 0.5 - Math.random())
                     .slice(0, 10)
                     .map(q => ({
@@ -147,15 +131,12 @@ async function loadQuestions(cat) {
                       A: q.ChoiceA, B: q.ChoiceB, C: q.ChoiceC, D: q.ChoiceD,
                       R: q.CorrectAnswer, E: q.Explanation, Cat: q.Category
                     }));
-    startQuiz();
+    idx = 0; score = 0;
+    show();
   } catch (error) {
-    document.getElementById('questionText').textContent = "データの取得に失敗しました。";
+    document.getElementById('questionText').textContent = "データの取得に失敗しました。GASのURLとアクセス権限を確認してください。";
+    console.error(error);
   }
-}
-
-function startQuiz() {
-  idx = 0; score = 0;
-  show();
 }
 
 function show() {
@@ -206,7 +187,7 @@ function select(id, el) {
 
 function nextQuestion() {
   idx++;
-  if(idx >= 10) result();
+  if(idx >= 10 || idx >= questions.length) result();
   else show();
 }
 
@@ -214,9 +195,11 @@ function result() {
   document.getElementById('quizScreen').style.display = 'none';
   document.getElementById('resultScreen').style.display = 'block';
   document.getElementById('resultScoreNum').textContent = score;
-  setTimeout(() => { 
-    document.getElementById('resultCircle').style.strokeDashoffset = 364.4 - (364.4 * score / 10); 
-  }, 100);
+  
+  // 円のプログレスアニメーション
+  const circle = document.getElementById('resultCircle');
+  const offset = 364.4 - (364.4 * score / 10);
+  setTimeout(() => { circle.style.strokeDashoffset = offset; }, 100);
   
   const m = score === 10 ? ['完璧！', 'VCFマスターの称号を授けます。'] :
            score >= 7 ? ['素晴らしい！', 'その調子で学習を続けましょう。'] : ['お疲れ様でした', '復習して再挑戦しましょう！'];
