@@ -76,7 +76,7 @@
     <div class="logo">vSphere Quiz</div>
     <h1>問題にチャレンジ！</h1>
     <p>vSphere関連の問題からランダムに10問出題します。<br>各問題はA〜Dの4択形式です。</p>
-    <button class="btn-start" onclick="startQuiz()">テストを開始する &nbsp;→</button>
+    <button class="btn-start" onclick="loadQuestions()">テストを開始する &nbsp;→</button>
   </div>
   <div class="quiz-screen" id="quizScreen" style="display:none">
     <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
@@ -115,144 +115,130 @@
     </div>
     <button class="btn-retry" onclick="retryQuiz()">↺ &nbsp;もう一度挑戦する</button>
   </div>
-</div>
-<script>
-const Q=[
-{S:"新しいESXiホストをインストールした後、vCenterから管理するために「最初」に作成する必要がある論理的な枠組みは何ですか？",A:"フォルダ",B:"データセンター",C:"クラスタ",D:"リソースプール",R:"B",E:"ホストを追加するには、まず最上位のコンテナである「データセンター」オブジェクトが必要です。"},
-{S:"ホストのパッチ適用のため、VMを停止せずに別のホストへ移動させたい。まず最初に確認すべき設定項目は何ですか？",A:"VMのCPU予約",B:"共有ストレージの接続",C:"物理NICのベンダー",D:"vCenterのライセンス",R:"B",E:"vMotionを行うには、移動元と移動先の両方のホストが同じ共有ストレージを認識している必要があります。"},
-{S:"vCenter Server Appliance (VCSA) のバックアップをスケジュール設定したい。まずどの管理画面にアクセスすべきですか？",A:"vSphere Client (ポート443)",B:"ESXi Host Client",C:"VAMI (ポート5480)",D:"SSH接続",R:"C",E:"VCSA自体のバックアップや更新は、5480ポートの管理インターフェース(VAMI)で行います。"},
-{S:"標準スイッチから分散スイッチ(vDS)への移行を計画しています。通信断を最小限にするための「最初の手順」は何ですか？",A:"すべてのNICを一気にvDSに移す",B:"vDSを作成しアップリンクを1つだけ割り当てる",C:"VMを先にvDSに移動させる",D:"標準スイッチを削除する",R:"B",E:"片方の物理NIC（アップリンク）を標準スイッチに残し、もう片方をvDSに割り当てることで、冗長性を保ちつつ移行できます。"},
-{S:"ホスト障害時にVMが自動再起動しません。HAの設定を確認したところ「アドミッションコントロール」が有効でした。まず何を疑うべきですか？",A:"ネットワークの帯域不足",B:"フェイルオーバー用のリソース（空き）不足",C:"ストレージのI/O遅延",D:"ホストのBIOSバージョン",R:"B",E:"アドミッションコントロールは、障害復旧用のリソースが足りない場合にVMの起動を制限する機能です。"},
-{S:"VMのパフォーマンスが低下しており「Ready時間」が高い値を示しています。まず検討すべき対策は何ですか？",A:"vCPUの数を増やす",B:"vCPUの数を減らす",C:"メモリ予約を増やす",D:"物理NICを増設する",R:"B",E:"Ready時間が高いのは、物理CPUの割り当てを待っている状態です。vCPUを減らすことでスケジューリングがスムーズになります。"},
-{S:"新規LUNをストレージから切り出しましたが、ESXiのデータストア一覧に表示されません。まず実行すべき操作は何ですか？",A:"ホストの再起動",B:"ストレージアダプタの再スキャン",C:"vCenterの再起動",D:"LUNの初期化",R:"B",E:"物理的に割り当てられた新しいLUNを認識させるには、ホスト側で「再スキャン」が必要です。"},
-{S:"クラスタ内で一部のホストだけCPUの世代が新しい場合、vMotionを成功させるために有効にすべき機能は何ですか？",A:"vSphere DRS",B:"EVC (Enhanced vMotion Compatibility)",C:"vSphere HA",D:"プロアクティブHA",R:"B",E:"EVCはCPU命令セットの差分を隠蔽し、世代の異なるホスト間でのvMotionを可能にします。"},
-{S:"仮想マシンのスナップショットが長期間残っており、ディスク容量を圧迫しています。「削除」操作を行う際、VMの動作はどうなりますか？",A:"瞬時に停止する",B:"動作し続けるが完了まで時間がかかる",C:"読み取り専用になる",D:"再起動が必要になる",R:"B",E:"スナップショットの削除（統合）中もVMは動作し続けますが、ディスクへの書き込み負荷が発生します。"},
-{S:"分散スイッチ(vDS)で特定のポートグループのVLAN IDを変更しました。設定を反映させるために必要な操作は何ですか？",A:"ホストの再起動",B:"VMの再起動",C:"特になし（即時反映）",D:"vDSの再起動",R:"C",E:"分散スイッチの設定変更は、保存した瞬間に接続されているすべてのホストに即座に同期・反映されます。"},
-{S:"2台のESXiホスト間でvMotionが「ネットワーク設定の不一致」で失敗します。まず両者のポートグループの何を確認すべきですか？",A:"記述名（名前）の一致",B:"セキュリティポリシー",C:"トラフィックシェーピング",D:"VLAN ID",R:"A",E:"標準スイッチの場合、ポートグループ名が1文字でも違うと別のネットワークと見なされ、vMotionに失敗します。"},
-{S:"重要なVMが誤って削除されるのを防ぎたい。vSphere Clientの機能で「まず」設定すべきことは何ですか？",A:"パスワードの複雑化",B:"権限設定（ロール）のカスタマイズ",C:"VMをテンプレートに変換",D:"スナップショットの作成",R:"B",E:"特定のユーザーから「インベントリからの削除」権限を除去したカスタムロールを作成し、割り当てます。"},
-{S:"ホストのメモリを増設したため、VMのメモリ予約を増やそうとしましたがエラーになります。まずどこを確認しますか？",A:"ホストのライセンス",B:"他のVMによる予約の合計値",C:"VMのOSバージョン",D:"仮想ハードウェアバージョン",R:"B",E:"クラスタ全体の空きリソース以上に「予約」をかけることはできません。"},
-{S:"メンテナンスモード終了後、VMが元のホストに自動で戻りません。DRSのどの設定を確認すべきですか？",A:"自動化レベル",B:"移行しきい値",C:"予測DRS",D:"仮想マシンのアフィニティ",R:"A",E:"自動化レベルが「手動」または「一部自動」の場合、VMの移動は自動で行われません。"},
-{S:"仮想ディスクのタイプを「シック（Eager Zeroed）」で作成する最大のメリットは何ですか？",A:"容量の節約",B:"作成速度の速さ",C:"初回書き込み時のパフォーマンス",D:"スナップショットの高速化",R:"C",E:"あらかじめゼロ埋めを行うため、実行時のゼロ書き込みオーバーヘッドがなく、最も高いパフォーマンスが得られます。"},
-{S:"vLCM (vSphere Lifecycle Manager) でホストを更新しようとしていますが、イメージのインポートができません。まず確認すべき要件は何ですか？",A:"ESXiのrootパスワード",B:"インターネット接続（またはプロキシ）",C:"VMの稼働数",D:"CPUのコア数",R:"B",E:"vLCMが最新のパッチ情報を取得するには、VMwareのオンラインリポジトリへのアクセスが必要です。"},
-{S:"仮想マシンの時刻がずれるという報告がありました。まず確認すべきVMware Toolsの設定は何ですか？",A:"ホストとの時刻同期を有効化",B:"ネットワークタイムプロトコルの設定",C:"ゲストOSの更新",D:"メモリ制御ドライバ",R:"A",E:"VMware Toolsの設定で「ホストとの時刻同期」をチェックすることで、ハイパーバイザ側の時刻に合わせることができます。"},
-{S:"クラスタ内でホストが「応答なし」になりました。HAが作動し、VMが再起動されました。まず調査すべきログはどれですか？",A:"vmware.log",B:"fdm.log",C:"hostd.log",D:"vpxa.log",R:"B",E:"HA（Fault Domain Manager）の挙動については、fdm.logを確認するのが定石です。"},
-{S:"1つのデータストアに多数のVMを配置しており、I/O遅延が発生しています。自動的にVMを別のデータストアに分散させる機能は何ですか？",A:"Storage vMotion",B:"Storage DRS",C:"vSphere Replication",D:"vSAN",R:"B",E:"Storage DRSを有効にすると、容量やI/O負荷に基づいてVMディスクを自動配置します。"},
-{S:"VMに新しいネットワークアダプタを追加しましたが、ゲストOSが認識しません。まず確認すべき項目は何ですか？",A:"アダプタタイプ (VMXNET3など)",B:"VLAN ID",C:"分散スイッチのバージョン",D:"ホストの物理ポート",R:"A",E:"OSがドライバを持っていないタイプを選択している可能性があります。VMware ToolsがインストールされていればVMXNET3が推奨です。"},
-{S:"vCenter Serverがダウンしました。この間、既存のVMの通信や動作はどうなりますか？",A:"すべて停止する",B:"動作し続けるがvMotionなどは不可",C:"読み取り専用になる",D:"30分後に自動シャットダウンする",R:"B",E:"vCenterは「管理」を司るだけなので、実行中のVMやハイパーバイザの基本機能（通信など）には影響しません。"},
-{S:"物理NICが10Gbpsなのに、VMの通信速度が上がりません。まず確認すべき仮想デバイスは何ですか？",A:"E1000アダプタ",B:"VMXNET3アダプタ",C:"準仮想化SCSI",D:"USBコントローラ",R:"A",E:"E1000は古い1Gbpsエミュレーションです。10Gbps以上の帯域を活用するにはVMXNET3への変更が必要です。"},
-{S:"共有データストアとしてNFSを使用しています。ESXiホストを接続する際、まず物理ネットワークで有効にすべき設定は何ですか？",A:"ジャンボフレーム (MTU 9000)",B:"STP (Spanning Tree)",C:"LACP",D:"IPv6",R:"A",E:"NFSやiSCSIなどのストレージトラフィックは、ジャンボフレームを有効にすることで効率が劇的に向上します。"},
-{S:"「孤立したVM」と表示されているVMがあります。まず試すべき解決策は何ですか？",A:"VMの削除",B:"インベントリからの削除と再登録",C:"ホストの再起動",D:"vCenterの再インストール",R:"B",E:".vmxファイルが無事であれば、一度登録を解除して再度データストアブラウザから登録し直すことで復旧します。"},
-{S:"VMのコンソールを開こうとすると「接続できません」とエラーが出ます。VCSA側で許可されている必要がある、一般的なWebコンソール用のポートは何ですか？",A:"22",B:"80",C:"443",D:"902",R:"C",E:"近年のvSphere Webコンソールは、主にポート443 (HTTPS) を介して通信します。"},
-{S:"仮想マシンのディスク容量が不足したため、vSphere Clientからサイズを拡張しました。次にゲストOS内で行うべき「最初」の操作は何ですか？",A:"OSの再起動",B:"パーティションの拡張/ボリュームの再スキャン",C:"仮想ハードウェアのアップグレード",D:"VMware Toolsの再インストール",R:"B",E:"vSphere側で物理的にディスクを増やしても、OS側で認識・拡張操作をしないと利用可能な容量は増えません。"},
-{S:"複数のESXiホストで構成されるクラスタで、1台のホストの時刻だけが数分ずれています。まずどこで設定を修正すべきですか？",A:"vCenter Serverの設定",B:"ESXiホストの[構成] > [時刻構成]",C:"ゲストOS内のNTP設定",D:"Active Directoryのドメインコントローラ",R:"B",E:"ホストの時刻同期は個別のホスト設定で行います。通常は共通のNTPサーバーを参照させます。"},
-{S:"VMのパフォーマンスチャートを確認したところ、メモリの「スワップ」が発生しています。まず検討すべき「最も効果的な」物理的対策は何ですか？",A:"物理メモリの増設",B:"仮想ディスクの高速化",C:"vCPUの追加",D:"ネットワークの広帯域化",R:"A",E:"スワップは物理メモリ不足の末期症状です。透過的ページ共有などで解消しない場合は物理メモリの増設が正解です。"},
-{S:"クラスタの「DRS」を有効にしましたが、ホスト間の負荷が偏ったままです。まず確認すべきDRSの「しきい値」設定は何ですか？",A:"予測DRSの有効化",B:"移行しきい値（スライダー）",C:"オートメーションレベル",D:"VM配分",R:"B",E:"移行しきい値が保守的すぎると、負荷に偏りがあっても移動が推奨されません。スライダーを右に動かして調整します。"},
-{S:"仮想マシンの[サマリー]タブに「VMware Tools はインストールされていますが、実行されていません」と表示されています。まず何を確認しますか？",A:"ライセンスの有効期限",B:"ゲストOS内のサービスの実行状態",C:"ホストのネットワーク接続",D:"vCenterのバージョン",R:"B",E:"ゲストOS内でVMware Toolsのサービス（Daemon）が停止している可能性があります。"},
-{S:"特定のVMを「絶対に別の物理ホストに分けて配置したい」という要望があります。DRSのどのルールを作成すべきですか？",A:"仮想マシンをまとめて保持",B:"仮想マシンを分離",C:"仮想マシンをホストに強制",D:"依存関係ルール",R:"B",E:"「仮想マシンを分離（Anti-Affinity）」ルールを使うことで、冗長性のためにVMを別ホストに散らすことができます。"},
-{S:"ESXiホストを新規に構築し、既存の分散スイッチ(vDS)に参加させたい。まず何をする必要がありますか？",A:"vDSの再構築",B:"vCenterへのホスト登録",C:"vDSのバージョンアップ",D:"標準スイッチの削除",R:"B",E:"vDSはvCenterが管理しているため、まずホストをvCenterのインベントリに追加する必要があります。"},
-{S:"仮想マシンのスナップショットを作成したところ、パフォーマンスが急激に低下しました。まず疑うべき「場所」はどこですか？",A:"CPUのクロック数",B:"データストアの空き容量とI/O負荷",C:"ゲストOSのメモリ割り当て",D:"管理ネットワークの帯域",R:"B",E:"スナップショット作成中は追加のディスク書き込みが発生し、データストアの負荷が高まります。"},
-{S:"VCSAの管理画面(5480)にアクセスできませんが、vSphere Client(443)には入れます。まず試すべき解決策は何ですか？",A:"VCSAの再インストール",B:"SSHで入り「vapi-endpoint」等のサービス状態を確認",C:"ESXiホストの再起動",D:"ブラウザのキャッシュクリア",R:"B",E:"特定の管理サービスだけが落ちている可能性があるため、CLIからサービスの状態確認と再起動を試みます。"},
-{S:"物理NICを2枚束ねて冗長化したい。標準スイッチまたは分散スイッチの設定で、まず構成すべき機能は何ですか？",A:"LACP",B:"チーミングおよびフェイルオーバー",C:"トラフィックシェーピング",D:"VLANのトランキング",R:"B",E:"NICチーミングを設定することで、片方のNICが故障しても通信を継続できるようになります。"},
-{S:"仮想マシンをテンプレートからデプロイしましたが、IPアドレスが古いままです。自動で新しいIPを割り当てるために必要な準備は何ですか？",A:"ゲストOSのカスタマイズ仕様",B:"VMware Toolsの削除",C:"仮想ハードウェアの更新",D:"静的ルートの設定",R:"A",E:"「カスタマイズ仕様」を適用することで、デプロイ時にIPやホスト名を自動で書き換えることができます。"},
-{S:"データストアの空き容量が枯渇し、VMが「一時停止」状態になりました。まず何をすべきですか？",A:"vCenterの再起動",B:"不要なファイルの削除やスナップショットの統合",C:"VMの強制終了",D:"ホストの切断",R:"B",E:"物理容量を空けることで、VMを再びレジューム（実行状態に戻す）させることができます。"},
-{S:"仮想マシンの保護のために vSphere Replication を導入します。まず最初にデプロイすべきコンポーネントは何ですか？",A:"SQL Server",B:"Replication Appliance",C:"NSX Manager",D:"vRealize Operations",R:"B",E:"専用のアプライアンスを両方のサイトにデプロイして、vCenterと紐付ける必要があります。"},
-{S:"クラスタ内で「EVC」を有効にしようとしましたが、エラーで有効にできません。まず何を確認すべきですか？",A:"VMがすべて停止しているか",B:"ネットワークの帯域",C:"ライセンスの種類",D:"ホストのモデル名",R:"A",E:"EVCの有効化（またはレベルの変更）には、クラスタ内のすべてのVMがパワーオフされている必要があります。"},
-{S:"仮想マシンのNIC設定で「ネットワーク ラベル」の選択肢が出てきません。まずどこを確認しますか？",A:"ホストのBIOS",B:"vDSまたは標準スイッチにポートグループがあるか",C:"VMのOS名",D:"vCenterの権限",R:"B",E:"接続先となる「ポートグループ」が作成されていないと、VMをネットワークに繋ぐことはできません。"},
-{S:"仮想マシンの[編集]画面で、メモリの最大値を増やそうとしたらグレーアウトして変更できません。まず何を確認しますか？",A:"メモリ予約の設定",B:"VMがパワーオン状態ではないか",C:"ホストの空き容量",D:"vCenterのバージョン",R:"B",E:"通常、メモリのホットプラグ機能が有効でない限り、メモリの変更にはVMの停止（パワーオフ）が必要です。"},
-{S:"ホストのローカルディスクをデータストアとして使いたい。まずどのアダプタを「再スキャン」しますか？",A:"ネットワークアダプタ",B:"ストレージアダプタ (HBA)",C:"USBコントローラ",D:"ビデオカード",R:"B",E:"ストレージアダプタをスキャンすることで、接続されているローカルのSATA/SAS/NVMeディスクを認識します。"},
-{S:"1つのホストに多数のVMを起動しようとしたら「リソース不足」で失敗しました。まずどの設定を確認すべきですか？",A:"ネットワークのVLAN",B:"リソースプールの予約とアドミッションコントロール",C:"ストレージのパス設定",D:"CPUの制限(Limit)",R:"B",E:"予約されているメモリやCPUが物理限界を超えている場合、新しいVMは起動できません。"},
-{S:"Windows VMで「ブルー画面」が頻発します。ハイパーバイザ側の問題かOS側の問題か切り分けるために、まず見るべきVMの設定ファイルは何ですか？",A:"vmware.log",B:".vmsd",C:".vswp",D:".nvram",R:"A",E:"VMの動作ログであるvmware.logには、物理ホスト側で発生したエラーやデバイスの切断が記録されます。"},
-{S:"メンテナンスモード中のホストにパッチを適用しました。次に「最初」に行うべき操作は何ですか？",A:"VMの移行",B:"メンテナンスモードの終了",C:"vCenterの再起動",D:"ホストの削除",R:"B",E:"作業完了後、メンテナンスモードを終了させることで、再びDRSによってVMが配置されるようになります。"},
-{S:"VDS(分散スイッチ)をバックアップしたい。どの操作が適切ですか？",A:"vCenter全体をバックアップ",B:"vDSを右クリックして[構成の書き出し]",C:"各ホストの構成を保存",D:"標準スイッチに変換",R:"B",E:"vDS単体の設定をエクスポートしておくことで、誤設定時のリストアが可能になります。"},
-{S:"特定のホストだけネットワークが不安定です。物理スイッチポートの「Duplex」設定と合わせるために、まずどこを確認しますか？",A:"VMのNIC設定",B:"ホストの物理アダプタの[構成]",C:"分散ポートグループの設定",D:"vCenterの[詳細設定]",R:"B",E:"物理NICのリンク速度やデュプレックス設定は、ホストの物理アダプタ設定で行います。"},
-{S:"ホスト上のすべてのVMが外部と通信できなくなりました。まず確認すべき「物理的」な箇所はどこですか？",A:"ホストのCPUファン",B:"アップリンクに使用している物理NICとケーブル",C:"仮想マシンのビデオカード",D:"データストアのLUN ID",R:"B",E:"仮想スイッチを外部に繋いでいる物理NICやケーブルの障害を真っ先に疑います。"},
-{S:"ストレージ移行(Storage vMotion)中に「タイムアウト」で失敗します。まずどこを調査すべきですか？",A:"ネットワークの帯域とストレージの応答時間",B:"VMのパスワード",C:"VCSAのメモリ容量",D:"Webブラウザのバージョン",R:"A",E:"大容量のディスク移行は時間がかかるため、ストレージやネットワークの負荷が高いと失敗しやすくなります。"},
-{S:"資格試験の勉強中、ドキュメントに「ベアメタル」という言葉が出てきました。これは何を指しますか？",A:"仮想マシンのこと",B:"OSを直接インストールした物理サーバーのこと",C:"クラウドサーバーのこと",D:"ネットワークスイッチのこと",R:"B",E:"仮想化層（ハイパーバイザ）を介さず、ハードウェア上で直接OSを動かす物理マシンの別称です。"}
-];
+</div><script>
+let questions = []; // GASから読み込んだ問題を格納する変数
+let idx = 0;
+let score = 0;
+let userAns = null;
 
-let quiz=[], idx=0, score=0, answered=false;
+// GASからデータを取得する関数
+async function loadQuestions() {
+  // --- ここを書き換えてください ---
+  const gasUrl = "https://script.google.com/macros/s/AKfycbx0SPSKwHb1KNSr_T9a-Bl9M-h_V8pWWYSEOqymt0rWTiUqGx6rOHZ7wiFdZMDaBWFT9A/exec"; 
+  // ------------------------------
 
-function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;}
+  const loadingText = document.getElementById('qText');
+  loadingText.textContent = "データを読み込み中...";
 
-function startQuiz(){
-  quiz=shuffle(Q).slice(0,10); idx=0; score=0;
-  document.getElementById('startScreen').style.display='none';
-  document.getElementById('quizScreen').style.display='block';
+  try {
+    const response = await fetch(gasUrl);
+    const data = await response.json();
+    
+    // 全データからランダムに10問選ぶ
+    questions = data.sort(() => 0.5 - Math.random())
+                    .slice(0, 10)
+                    .map(q => ({
+                      Q: q.Scenario,
+                      A: q.ChoiceA,
+                      B: q.ChoiceB,
+                      C: q.ChoiceC,
+                      D: q.ChoiceD,
+                      R: q.CorrectAnswer,
+                      E: q.Explanation
+                    }));
+    
+    // 読み込み完了後にクイズ開始
+    startQuiz();
+  } catch (error) {
+    console.error("データの取得に失敗しました:", error);
+    loadingText.textContent = "データの読み込みに失敗しました。GASのURLとデプロイ設定を確認してください。";
+  }
+}
+
+function startQuiz() {
+  idx = 0;
+  score = 0;
+  document.getElementById('introScreen').style.display = 'none';
+  document.getElementById('resultScreen').style.display = 'none';
+  document.getElementById('quizScreen').style.display = 'block';
   show();
 }
 
-function show(){
-  answered=false;
-  const q=quiz[idx];
-  document.getElementById('progressFill').style.width=(idx/10*100)+'%';
-  document.getElementById('questionNum').textContent=`問題 ${idx+1} / 10`;
-  document.getElementById('scoreBadge').textContent=`正解: ${score}`;
-  document.getElementById('categoryTag').textContent='vSphere';
-  document.getElementById('questionText').textContent=q.S;
-  const el=document.getElementById('choices');
-  el.innerHTML='';
-  [['A',q.A],['B',q.B],['C',q.C],['D',q.D]].forEach(([l,t])=>{
-    const b=document.createElement('button');
-    b.className='choice-btn';
-    b.innerHTML=`<span class="choice-label">${l}</span><span>${t}</span>`;
-    b.onclick=()=>pick(l,b);
-    el.appendChild(b);
+function show() {
+  const q = questions[idx];
+  userAns = null;
+  document.getElementById('qIdx').textContent = `QUESTION ${idx + 1}`;
+  document.getElementById('qText').textContent = q.Q;
+  document.getElementById('prog').style.width = ((idx + 1) * 10) + '%';
+  
+  const opts = document.getElementById('opts');
+  opts.innerHTML = '';
+  ['A', 'B', 'C', 'D'].forEach(id => {
+    const btn = document.createElement('div');
+    btn.className = 'opt';
+    btn.innerHTML = `<span class="opt-id">${id}</span>${q[id]}`;
+    btn.onclick = () => select(id, btn);
+    opts.appendChild(btn);
   });
-  document.getElementById('feedback').style.display='none';
-  document.getElementById('feedback').className='feedback';
-  document.getElementById('btnNext').style.display='none';
-  document.getElementById('quizScreen').style.animation='none';
-  setTimeout(()=>document.getElementById('quizScreen').style.animation='fadeIn 0.3s ease',10);
+
+  document.getElementById('feedback').style.display = 'none';
+  document.getElementById('btnNext').style.display = 'none';
 }
 
-function pick(sel, btn){
-  if(answered)return;
-  answered=true;
-  const q=quiz[idx];
-  const ok=sel===q.R;
-  if(ok)score++;
-  document.querySelectorAll('.choice-btn').forEach(b=>{
-    b.disabled=true;
-    if(b.querySelector('.choice-label').textContent===q.R && !ok) b.classList.add('reveal-correct');
-  });
-  btn.classList.add(ok?'correct':'wrong');
-  const fb=document.getElementById('feedback');
-  document.getElementById('feedbackTitle').textContent=ok?'✓ 正解！':`✗ 不正解 — 正解は ${q.R}`;
-  document.getElementById('feedbackBody').textContent=q.E?`解説: ${q.E}`:'';
-  fb.className='feedback '+(ok?'correct-fb':'wrong-fb');
-  fb.style.display='block';
-  const bn=document.getElementById('btnNext');
-  bn.textContent=idx<9?'次の問題へ →':'結果を見る →';
-  bn.style.display='block';
+function select(id, el) {
+  if(userAns) return;
+  userAns = id;
+  const q = questions[idx];
+  const ok = (id === q.R);
+  if(ok) {
+    score++;
+    el.classList.add('correct');
+  } else {
+    el.classList.add('wrong');
+    // 正解の選択肢をハイライト
+    Array.from(document.querySelectorAll('.opt')).forEach(opt => {
+      if(opt.querySelector('.opt-id').textContent === q.R) opt.classList.add('correct');
+    });
+  }
+
+  const fb = document.getElementById('feedback');
+  document.getElementById('feedbackTitle').textContent = ok ? '✓ 正解！' : `✗ 不正解 — 正解は ${q.R}`;
+  document.getElementById('feedbackBody').textContent = q.E ? `解説: ${q.E}` : '';
+  fb.className = 'feedback ' + (ok ? 'correct-fb' : 'wrong-fb');
+  fb.style.display = 'block';
+  
+  const bn = document.getElementById('btnNext');
+  bn.textContent = idx < 9 ? '次の問題へ →' : '結果を見る →';
+  bn.style.display = 'block';
 }
 
-function nextQuestion(){
+function nextQuestion() {
   idx++;
-  if(idx>=10)result();
+  if(idx >= 10) result();
   else show();
 }
 
-function result(){
-  document.getElementById('quizScreen').style.display='none';
-  document.getElementById('resultScreen').style.display='block';
-  setTimeout(()=>{ document.getElementById('resultCircle').style.strokeDashoffset=364.4-(364.4*score/10); },100);
-  document.getElementById('resultScoreNum').textContent=score;
-  document.getElementById('statCorrect').textContent=score;
-  document.getElementById('statWrong').textContent=10-score;
-  const m=score===10?['完璧です！🎉','全問正解！素晴らしい結果です。']:
-           score>=8?['よくできました！👏','あと少しで満点です！']:
-           score>=6?['まずまずです 💪','苦手な分野を復習しましょう。']:
-           score>=4?['もう少し頑張ろう 📚','基礎から見直してみましょう。']:
+function result() {
+  document.getElementById('quizScreen').style.display = 'none';
+  document.getElementById('resultScreen').style.display = 'block';
+  setTimeout(() => { 
+    document.getElementById('resultCircle').style.strokeDashoffset = 364.4 - (364.4 * score / 10); 
+  }, 100);
+  document.getElementById('resultScoreNum').textContent = score;
+  document.getElementById('statCorrect').textContent = score;
+  document.getElementById('statWrong').textContent = 10 - score;
+  
+  const m = score === 10 ? ['完璧です！🎉','全問正解！素晴らしい結果です。'] :
+           score >= 8 ? ['よくできました！👏','あと少しで満点です！'] :
+           score >= 6 ? ['まずまずです 💪','苦手な分野を復習しましょう。'] :
+           score >= 4 ? ['もう少し頑張ろう 📚','基礎から見直してみましょう。'] :
                     ['要復習です 🔥','問題をよく読んで再挑戦！'];
-  document.getElementById('resultMessage').textContent=m[0];
-  document.getElementById('resultSub').textContent=m[1];
+  document.getElementById('resultTitle').textContent = m[0];
+  document.getElementById('resultDesc').textContent = m[1];
 }
 
-function retryQuiz(){
-  document.getElementById('resultScreen').style.display='none';
-  document.getElementById('resultCircle').style.strokeDashoffset='364.4';
-  document.getElementById('startScreen').style.display='block';
-}
+// ページ読み込み時に実行する代わりに、ボタンからスタートするように変更
+// window.onload = loadQuestions; 
 </script>
 </body>
 </html>
