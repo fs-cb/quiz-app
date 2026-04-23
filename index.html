@@ -110,7 +110,7 @@ let score = 0;
 let userAns = null;
 
 function loadQuestions(cat) {
-  const gasUrl = "https://script.google.com/macros/s/AKfycbzscfK9XSN2QOjd1P8qw2rRExkGTLtMfFr7V7oCrgko14WNVEDK-wphS4cqMfmdrKSSHA/exec";
+  const gasUrl = "https://script.google.com/macros/s/AKfycbyEqy5d1l0FkqC68mXofFTTKzqI-DrdIs11oeiZes7uoIB8NHXtlR6_RtLaAEf8K87ICA/exec";
 
   document.getElementById('startScreen').style.display = 'none';
   document.getElementById('quizScreen').style.display = 'block';
@@ -125,18 +125,17 @@ function loadQuestions(cat) {
         return;
       }
 
-      questions = data.sort(() => 0.5 - Math.random())
-        .slice(0, 10)
-        .map(q => ({
-          Q: q.Scenario,
-          A: q.ChoiceA,
-          B: q.ChoiceB,
-          C: q.ChoiceC,
-          D: q.ChoiceD,
-          R: q.CorrectAnswer,
-          E: q.Explanation,
-          Cat: q.Category
-        }));
+      questions = data.map(q => ({
+        ID: q.ID,
+        Q: q.Scenario,
+        A: q.ChoiceA,
+        B: q.ChoiceB,
+        C: q.ChoiceC,
+        D: q.ChoiceD,
+        R: q.CorrectAnswer,
+        E: q.Explanation,
+        Cat: q.Category
+      }));
 
       idx = 0;
       score = 0;
@@ -152,7 +151,7 @@ function loadQuestions(cat) {
 
   const script = document.createElement('script');
   script.id = 'jsonpScript';
-  script.src = `${gasUrl}?cat=${encodeURIComponent(cat)}&callback=${callbackName}`;
+  script.src = `${gasUrl}?cat=${encodeURIComponent(cat)}&limit=10&callback=${callbackName}`;
   script.onerror = function(err) {
     document.getElementById('questionText').textContent = "データの取得に失敗しました。";
     console.error(err);
