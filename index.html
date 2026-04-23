@@ -76,10 +76,11 @@
       <span class="question-num" id="questionNum">問題 1 / 10</span>
       <span class="score-badge" id="scoreBadge">正解: 0</span>
     </div>
-    <div class="question-card">
-      <div class="category-tag" id="categoryTag">CATEGORY</div>
-      <div class="question-text" id="questionText">読み込み中...</div>
-    </div>
+  <div class="question-card">
+    <div class="category-tag" id="categoryTag">CATEGORY</div>
+    <div id="personalAccuracy" style="font-size:12px; color:var(--text-muted); margin-bottom:10px;"></div>
+    <div class="question-text" id="questionText">読み込み中...</div>
+  </div>
     <div class="choices" id="choices"></div>
     <div class="feedback" id="feedback">
       <div id="feedbackTitle" style="font-weight:700; margin-bottom:5px;"></div>
@@ -114,7 +115,7 @@ function loadQuestions(cat) {
 
   document.getElementById('startScreen').style.display = 'none';
   document.getElementById('quizScreen').style.display = 'block';
-  document.getElementById('questionText').textContent = "データを読み込み中...";
+  document.getElementById('questionText').textContent = "問題を準備しています...";
 
   const callbackName = "handleQuizData";
 
@@ -145,7 +146,52 @@ function loadQuestions(cat) {
       console.error(error);
     }
   };
+const PERSONAL_STATS_KEY = 'vcfQuizPersonalStats';
 
+function getPersonalStats() {
+  try {
+    return JSON.parse(localStorage.getItem(PERSONAL_STATS_KEY) || '{}');
+  } catch (e) {
+    console.error('localStorage parse error:', e);
+    return {};
+  }
+}
+
+function savePersonalStats(stats) {
+  localStorage.setItem(PERSONAL_STATS_KEY, JSON.stringify(stats));
+}
+
+function recordQuestionResult(questionId, isCorrect) {
+  if (!questionId) return;
+
+  const stats = getPersonalStats();
+
+  if (!stats[questionId]) {
+    stats[questionId] = {
+      answered: 0,
+      correct: 0
+    };
+  }
+
+  stats[questionId].answered += 1;
+  if (isCorrect) {
+    stats[questionId].correct += 1;
+  }
+
+  savePersonalStats(stats);
+}
+
+function getQuestionAccuracy(questionId) {
+  if (!questionId) return null;
+
+  const stats = getPersonalStats();
+  const item = stats[questionId];
+
+  if (!item || !item.answered) return null;
+
+  return Math.round((item.correct / item.answered) * 100);
+}
+  
   const oldScript = document.getElementById('jsonpScript');
   if (oldScript) oldScript.remove();
 
@@ -166,6 +212,13 @@ function show() {
   document.getElementById('scoreBadge').textContent = `正解: ${score}`;
   document.getElementById('progressFill').style.width = `${(idx + 1) * 10}%`;
   document.getElementById('categoryTag').textContent = q.Cat || "QUIZ";
+  
+  const personalAccuracy = getQuestionAccuracy(q.ID);
+  document.getElementById('personalAccuracy').textContent =
+    personalAccuracy === null
+      ? 'あなたの正解率: 0%'
+      : `あなたの正解率: ${personalAccuracy}%`;
+  
   document.getElementById('questionText').textContent = q.Q;
   
   const choicesDiv = document.getElementById('choices');
@@ -186,6 +239,8 @@ function select(id, el) {
   userAns = id;
   const q = questions[idx];
   const ok = (id === q.R);
+
+  recordQuestionResult(q.ID, ok);
   
   if(ok) {
     score++;
