@@ -110,42 +110,6 @@ let idx = 0;
 let score = 0;
 let userAns = null;
 
-function loadQuestions(cat) {
-  const gasUrl = "https://script.google.com/macros/s/AKfycbyEqy5d1l0FkqC68mXofFTTKzqI-DrdIs11oeiZes7uoIB8NHXtlR6_RtLaAEf8K87ICA/exec";
-
-  document.getElementById('startScreen').style.display = 'none';
-  document.getElementById('quizScreen').style.display = 'block';
-  document.getElementById('questionText').textContent = "問題を準備しています...";
-
-  const callbackName = "handleQuizData";
-
-  window[callbackName] = function(data) {
-    try {
-      if (!data || data.length === 0) {
-        document.getElementById('questionText').textContent = "該当する問題が見つかりませんでした。";
-        return;
-      }
-
-      questions = data.map(q => ({
-        ID: q.ID,
-        Q: q.Scenario,
-        A: q.ChoiceA,
-        B: q.ChoiceB,
-        C: q.ChoiceC,
-        D: q.ChoiceD,
-        R: q.CorrectAnswer,
-        E: q.Explanation,
-        Cat: q.Category
-      }));
-
-      idx = 0;
-      score = 0;
-      show();
-    } catch (error) {
-      document.getElementById('questionText').textContent = "データ処理中にエラーが発生しました。";
-      console.error(error);
-    }
-  };
 const PERSONAL_STATS_KEY = 'vcfQuizPersonalStats';
 
 function getPersonalStats() {
@@ -191,7 +155,44 @@ function getQuestionAccuracy(questionId) {
 
   return Math.round((item.correct / item.answered) * 100);
 }
-  
+
+function loadQuestions(cat) {
+  const gasUrl = "https://script.google.com/macros/s/AKfycbyEqy5d1l0FkqC68mXofFTTKzqI-DrdIs11oeiZes7uoIB8NHXtlR6_RtLaAEf8K87ICA/exec";
+
+  document.getElementById('startScreen').style.display = 'none';
+  document.getElementById('quizScreen').style.display = 'block';
+  document.getElementById('questionText').textContent = "問題を準備しています...";
+
+  const callbackName = "handleQuizData";
+
+  window[callbackName] = function(data) {
+    try {
+      if (!data || data.length === 0) {
+        document.getElementById('questionText').textContent = "該当する問題が見つかりませんでした。";
+        return;
+      }
+
+      questions = data.map(q => ({
+        ID: q.ID,
+        Q: q.Scenario,
+        A: q.ChoiceA,
+        B: q.ChoiceB,
+        C: q.ChoiceC,
+        D: q.ChoiceD,
+        R: q.CorrectAnswer,
+        E: q.Explanation,
+        Cat: q.Category
+      }));
+
+      idx = 0;
+      score = 0;
+      show();
+    } catch (error) {
+      document.getElementById('questionText').textContent = "データ処理中にエラーが発生しました。";
+      console.error(error);
+    }
+  };
+
   const oldScript = document.getElementById('jsonpScript');
   if (oldScript) oldScript.remove();
 
@@ -205,6 +206,7 @@ function getQuestionAccuracy(questionId) {
 
   document.body.appendChild(script);
 }
+  
 function show() {
   const q = questions[idx];
   userAns = null;
