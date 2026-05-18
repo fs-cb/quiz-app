@@ -26,6 +26,7 @@
   .cat-btn:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.3); }
   .mix-btn { grid-column: span 2; margin-top: 8px; background: linear-gradient(135deg, var(--accent), var(--accent2)); border: none; }
   .exam-btn { grid-column: span 2; margin-top: 8px; background: linear-gradient(135deg, #f97316, #7c3aed); border: none; }
+  .study-btn { grid-column: span 2; margin-top: 8px; background: linear-gradient(135deg, #22c55e, #4f8ef7); border: none; }
   .quiz-screen { animation: fadeIn 0.4s ease; }
   .progress-bar { background: var(--surface); border-radius: 50px; height: 6px; margin-bottom: 28px; overflow: hidden; border: 1px solid var(--border); }
   .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 50px; width: 0%; transition: width 0.5s cubic-bezier(0.4,0,0.2,1); }
@@ -77,6 +78,7 @@
       <button class="cat-btn" onclick="loadQuestions('Terminology', 'practice')">用語</button>
       <button class="cat-btn mix-btn" onclick="loadQuestions('MIX', 'practice')">ランダム &nbsp;→</button>
       <button class="cat-btn exam-btn" onclick="loadQuestions('MIX', 'exam')">本試験モード &nbsp;→</button>
+      <button class="cat-btn study-btn" onclick="loadQuestions('MIX', 'study')">学習モード（20問） &nbsp;→</button>
     </div>
   </div>
 
@@ -124,6 +126,7 @@ let userAns = null;
 let currentMode = 'practice';
 let examAnswers = {};
 let currentSelections = [];
+let studyAnswered = false;
 
 const PERSONAL_STATS_KEY = 'vcfQuizPersonalStats';
 
@@ -191,7 +194,7 @@ function getChoiceLabels(q) {
 }
 
 function loadQuestions(cat, mode = 'practice') {
-  const gasUrl = "https://script.google.com/macros/s/AKfycbyxc5p0qTNWvegNTlk-rw523fHkDPLl_1vxmSwYYiIpCaVqtvcD7SDFHqFK2N5I7O-2ow/exec";
+  const gasUrl = "https://script.google.com/macros/s/AKfycbwmim2hOnnpbdxeCMIZHaZ5alWP10Q0S1WXwu0_rLmI36uRpA0oQnajRbYXZdJc0WTgAQ/exec";
 
   currentMode = mode;
   examAnswers = {};
@@ -199,7 +202,7 @@ function loadQuestions(cat, mode = 'practice') {
   document.getElementById('startScreen').style.display = 'none';
   document.getElementById('resultScreen').style.display = 'none';
   document.getElementById('quizScreen').style.display = 'block';
-  document.getElementById('questionText').textContent = mode === 'exam' ? '本試験を準備しています...' : '問題を準備しています...';
+  document.getElementById('questionText').textContent = mode === 'exam' ? '本試験を準備しています...' : (mode === 'study' ? '学習モードを準備しています...' : '問題を準備しています...');
   document.getElementById('choices').innerHTML = '';
   document.getElementById('feedback').style.display = 'none';
   document.getElementById('btnNext').style.display = 'none';
@@ -255,7 +258,7 @@ function loadQuestions(cat, mode = 'practice') {
     mode,
     callback: callbackName
   });
-  params.set('limit', mode === 'exam' ? '60' : '10');
+  params.set('limit', mode === 'exam' ? '60' : (mode === 'study' ? '20' : '10'));
   script.src = `${gasUrl}?${params.toString()}`;
   script.onerror = function(err) {
     document.getElementById('questionText').textContent = "データの取得に失敗しました。";
@@ -271,13 +274,15 @@ function show() {
   currentSelections = examAnswers[q.ID] ? [...examAnswers[q.ID]] : [];
   const total = questions.length;
   const isExam = currentMode === 'exam';
+  const isStudy = currentMode === 'study';
   const isMulti = q.Type === 2;
+  studyAnswered = false;
   const selectCount = q.SelectCount || (isMulti ? 2 : 1);
 
   document.getElementById('questionNum').textContent = `問題 ${idx + 1} / ${total}`;
-  document.getElementById('scoreBadge').textContent = isExam ? '本試験モード' : `正解: ${score}`;
+  document.getElementById('scoreBadge').textContent = isExam ? '本試験モード' : (isStudy ? `学習: ${score}` : `正解: ${score}`);
   document.getElementById('progressFill').style.width = `${((idx + 1) / total) * 100}%`;
-  document.getElementById('categoryTag').textContent = isExam ? 'EXAM' : (q.Cat || 'QUIZ');
+  document.getElementById('categoryTag').textContent = isExam ? 'EXAM' : (isStudy ? 'STUDY' : (q.Cat || 'QUIZ'));
 
   const personalAccuracy = getQuestionAccuracy(q.ID);
   document.getElementById('personalAccuracy').style.display = isExam ? 'none' : 'block';
@@ -311,6 +316,10 @@ function show() {
     btnNext.style.display = 'block';
     btnNext.textContent = idx === questions.length - 1 ? '採点する →' : '次の問題へ →';
     updateExamNextButton();
+  } else if (isStudy) {
+    btnNext.style.display = 'block';
+    btnNext.textContent = '回答する →';
+    updateStudyAnswerButton();
   } else {
     btnNext.style.display = 'none';
     btnNext.textContent = '次の問題へ →';
@@ -320,6 +329,8 @@ function show() {
 function handleChoice(id, el) {
   if (currentMode === 'exam') {
     selectExamChoice(id);
+  } else if (currentMode === 'study') {
+    selectStudyChoice(id);
   } else {
     selectPracticeChoice(id, el);
   }
@@ -377,6 +388,67 @@ function selectExamChoice(id) {
   updateExamNextButton();
 }
 
+function selectStudyChoice(id) {
+  if (studyAnswered) return;
+
+  const q = questions[idx];
+  const isMulti = q.Type === 2;
+  const selectCount = q.SelectCount || (isMulti ? 2 : 1);
+
+  if (!isMulti) {
+    currentSelections = [id];
+  } else {
+    if (currentSelections.includes(id)) {
+      currentSelections = currentSelections.filter(v => v !== id);
+    } else {
+      if (currentSelections.length >= selectCount) return;
+      currentSelections.push(id);
+    }
+  }
+
+  Array.from(document.querySelectorAll('.choice-btn')).forEach(btn => {
+    const label = btn.querySelector('.choice-label').textContent;
+    btn.classList.toggle('selected', currentSelections.includes(label));
+  });
+  updateStudyAnswerButton();
+}
+
+function updateStudyAnswerButton() {
+  if (currentMode !== 'study') return;
+  const q = questions[idx];
+  const isMulti = q.Type === 2;
+  const required = q.SelectCount || (isMulti ? 2 : 1);
+  const btnNext = document.getElementById('btnNext');
+  btnNext.disabled = !studyAnswered && currentSelections.length !== required;
+}
+
+function gradeStudyQuestion() {
+  const q = questions[idx];
+  const ok = answersMatch(currentSelections, q.R);
+  studyAnswered = true;
+
+  if (ok) score++;
+  recordQuestionResult(q.ID, ok);
+
+  const correctAnswers = normalizeAnswers(q.R);
+  Array.from(document.querySelectorAll('.choice-btn')).forEach(btn => {
+    const label = btn.querySelector('.choice-label').textContent;
+    btn.disabled = true;
+    if (correctAnswers.includes(label)) btn.classList.add('correct');
+    if (currentSelections.includes(label) && !correctAnswers.includes(label)) btn.classList.add('wrong');
+  });
+
+  const fb = document.getElementById('feedback');
+  document.getElementById('feedbackTitle').textContent = ok ? '✓ 正解！' : `✗ 不正解 (正解: ${formatAnswers(q.R)})`;
+  document.getElementById('feedbackBody').textContent = q.Explanation || '';
+  fb.className = 'feedback ' + (ok ? 'correct-fb' : 'wrong-fb');
+  fb.style.display = 'block';
+
+  const btnNext = document.getElementById('btnNext');
+  btnNext.disabled = false;
+  btnNext.textContent = idx === questions.length - 1 ? '結果を見る →' : '次の問題へ →';
+}
+
 function updateExamNextButton() {
   if (currentMode !== 'exam') return;
   const q = questions[idx];
@@ -396,6 +468,17 @@ function nextQuestion() {
     return;
   }
 
+  if (currentMode === 'study') {
+    if (!studyAnswered) {
+      gradeStudyQuestion();
+      return;
+    }
+    idx++;
+    if(idx >= questions.length) resultPractice();
+    else show();
+    return;
+  }
+
   idx++;
   if(idx >= questions.length) resultPractice();
   else show();
@@ -404,8 +487,10 @@ function nextQuestion() {
 function resultPractice() {
   document.getElementById('quizScreen').style.display = 'none';
   document.getElementById('resultScreen').style.display = 'block';
-  document.getElementById('resultScoreNum').textContent = score;
   document.getElementById('resultDetails').innerHTML = '';
+
+  const rate = Math.round((score / questions.length) * 100);
+  document.getElementById('resultScoreNum').textContent = currentMode === 'study' ? `${rate}%` : score;
 
   const circle = document.getElementById('resultCircle');
   const offset = 364.4 - (364.4 * score / questions.length);
@@ -414,8 +499,10 @@ function resultPractice() {
 
   const m = score === questions.length ? ['完璧！', 'VCFマスターの称号を授けます。'] :
             score >= Math.ceil(questions.length * 0.7) ? ['素晴らしい！', 'その調子で学習を続けましょう。'] : ['お疲れ様でした', '復習して再挑戦しましょう！'];
-  document.getElementById('resultMessage').textContent = m[0];
-  document.getElementById('resultSub').textContent = `${score} / ${questions.length}問 正解。${m[1]}`;
+  document.getElementById('resultMessage').textContent = currentMode === 'study' ? '学習モード完了！' : m[0];
+  document.getElementById('resultSub').textContent = currentMode === 'study'
+    ? `正解率 ${rate}%（${score} / ${questions.length}問 正解）`
+    : `${score} / ${questions.length}問 正解。${m[1]}`;
 }
 
 function resultExam() {
